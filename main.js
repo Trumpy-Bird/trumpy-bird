@@ -2,15 +2,34 @@ var bird = null, board = null;
 var dimPipe = { width: 60, height: 315 }, cPos = { x: 80, y: 100, h: 40, w: 100 };
 var gravity = 0.5, iniSpeed = -7, curSpeed = 0;
 var score = 0, noClr = 0, tmStep = 0, state = 0; 		// 0-not started,1-play,2-over;
-var w = innerWidth+"px";
+var w = innerWidth + "px";
+var h = innerHeight + "px";
 
+(function ($) {
+    $.cssNumber.rotate = true;
+    $.cssHooks.rotate = {
+        set: function (el, v) {
+            if (typeof v === 'string')
+                v = (v.indexOf("rad") != -1) ? parseInt(v) * 180 / Math.PI : parseInt(v);
+            v = (~~v);
+            if (v == ($.data(el, 'rotate') || 0)) return;
+            el.style["MozTransform"] = el.style["MozTransform"] = el.style["-webkit-transform"]
+                = el.style["transform"] = " rotate(" + (v % 360) + "deg)";
+            $.data(el, 'rotate', v);
+        },
+        get: function (el, computed) {
+            return $.data(el, 'rotate') || 0;
+        }
+    };
+})(jQuery);
 
 $(document).ready(function () {
-    $('#bGrnd').css({width: w+500, height: innerHeight});
+    $('#bGrnd').css({ width: w + 500, height: innerHeight });
     bird = $('#bird');
     var evt = (typeof (bird[0].ontouchend) == "function") ? "touchstart" : "mousedown";
     board = $('#board').bind(evt, onTap);
     start();
+    board.css({ width: w /*, height:h*/ });
 });
 
 function gameOver() {
@@ -48,8 +67,15 @@ function BirdStep() {
         return;
     var og = cPos.h * 2;
     var oh = og + Math.floor(Math.random() * (mh - og + 1));
-    var obs = $("<img/><img/>").addClass('c obs').css({ left: 960, zIndex: 3 }).css(dimPipe).attr('src', 'fence.png')
-        .appendTo(board).animate({ left: -50 }, Math.max(2000, 3500 - noClr * 50), 'linear', function () {
+    var obs = $("<img/><img/>")
+        .addClass('c obs')
+        .css({ left: 960, zIndex: 3 })
+        .css(dimPipe)
+        .attr('src', 'fence.png')
+        .appendTo(board)
+        .animate({ left: -50 },
+        Math.max(2000, 3500 - noClr * 50),
+        'linear', function () {
             $('#score').text(' Score: ' + (score += 1 + Math.floor(++noClr / 10)));
             this.remove();
         });
